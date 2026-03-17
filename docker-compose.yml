@@ -1,0 +1,150 @@
+services:
+  # ── Ambiente de desenvolvimento ─────────────────────────────────────────────
+  flutter:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ciranda-app:dev
+    container_name: ciranda_flutter
+    volumes:
+      # Monta o código-fonte para edição ao vivo
+      - .:/app
+      # Cache de pub para não baixar a cada restart
+      - flutter_pub_cache:/root/.pub-cache
+      # Cache do gradle Android
+      - gradle_cache:/root/.gradle
+    environment:
+      - FLUTTER_ROOT=/opt/flutter
+      - ANDROID_SDK_ROOT=/opt/android-sdk
+      - PUB_CACHE=/root/.pub-cache
+    working_dir: /app
+    # Mantém o container vivo para comandos interativos
+    stdin_open: true
+    tty: true
+    command: tail -f /dev/null
+
+  # ── Build de APK (debug) ────────────────────────────────────────────────────
+  build-apk-debug:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ciranda-app:dev
+    container_name: ciranda_build_debug
+    volumes:
+      - .:/app
+      - flutter_pub_cache:/root/.pub-cache
+      - gradle_cache:/root/.gradle
+      # Output do APK fica na pasta local build/app/outputs/
+      - ./build:/app/build
+    working_dir: /app
+    command: >
+      sh -c "flutter pub get &&
+             dart run build_runner build --delete-conflicting-outputs &&
+             flutter build apk --debug &&
+             echo '✅ APK debug gerado em build/app/outputs/flutter-apk/'"
+    profiles:
+      - build
+
+  # ── Build de APK (release) ──────────────────────────────────────────────────
+  build-apk-release:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ciranda-app:dev
+    container_name: ciranda_build_release
+    volumes:
+      - .:/app
+      - flutter_pub_cache:/root/.pub-cache
+      - gradle_cache:/root/.gradle
+      - ./build:/app/build
+    working_dir: /app
+    command: >
+      sh -c "flutter pub get &&
+             dart run build_runner build --delete-conflicting-outputs &&
+             flutter build apk --release &&
+             echo '✅ APK release gerado em build/app/outputs/flutter-apk/'"
+    profiles:
+      - release
+
+  # ── Flutter Web — hot reload no browser ─────────────────────────────────────
+  # Acesse: http://localhost:8080
+  # Salve qualquer arquivo e o browser recarrega automaticamente (hot reload)
+  web-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ciranda-app:dev
+    container_name: ciranda_web_dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - flutter_pub_cache:/root/.pub-cache
+    working_dir: /app
+    command: >
+      sh -c "flutter create --platforms=web . &&
+             flutter pub get &&
+             flutter run -d web-server --web-port=8080 --web-hostname=0.0.0.0"
+    # Reinicia se cair
+    restart: unless-stopped
+
+  # ── Build Web (produção) ─────────────────────────────────────────────────────
+  build-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ciranda-app:dev
+    container_name: ciranda_build_web
+    volumes:
+      - .:/app
+      - flutter_pub_cache:/root/.pub-cache
+      - ./build:/app/build
+    working_dir: /app
+    command: >
+      sh -c "flutter pub get &&
+             flutter build web --release &&
+             echo '✅ Web build gerado em build/web/'"
+    profiles:
+      - web
+
+  # ── Testes ──────────────────────────────────────────────────────────────────
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ciranda-app:dev
+    container_name: ciranda_test
+    volumes:
+      - .:/app
+      - flutter_pub_cache:/root/.pub-cache
+    working_dir: /app
+    command: >
+      sh -c "flutter pub get &&
+             flutter test --coverage &&
+             echo '✅ Testes concluídos'"
+    profiles:
+      - test
+
+  # ── Code generation (Riverpod build_runner) ─────────────────────────────────
+  codegen:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ciranda-app:dev
+    container_name: ciranda_codegen
+    volumes:
+      - .:/app
+      - flutter_pub_cache:/root/.pub-cache
+    working_dir: /app
+    command: >
+      sh -c "flutter pub get &&
+             dart run build_runner build --delete-conflicting-outputs &&
+             echo '✅ Código gerado com sucesso'"
+    profiles:
+      - codegen
+
+volumes:
+  flutter_pub_cache:
+    name: ciranda_pub_cache
+  gradle_cache:
+    name: ciranda_gradle_cache

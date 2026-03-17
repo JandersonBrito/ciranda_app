@@ -1,0 +1,52 @@
+# Build outputs
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Android build
+android/.gradle/
+android/app/build/
+android/local.properties
+
+# iOS build
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/ephemeral/
+ios/Runner.xcworkspace/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
+
+# Credenciais (nunca commitar!)
+google-services.json
+GoogleService-Info.plist
+.env
+.env.*
+key.properties
+*.jks
+*.keystore
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Docs
+*.md
