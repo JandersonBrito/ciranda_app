@@ -3,14 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import '../../../constants/firestore_collections.dart';
+import '../../../core/constants/firestore_collections.dart';
 import '../../../models/usuario_model.dart';
 import '../../../providers/firebase_providers.dart';
 import 'auth_remote_datasource.dart';
-
-// Imports corretos (sem caminho relativo quebrado para constants)
-// ignore: depend_on_referenced_packages
-import '../../../core/constants/firestore_collections.dart';
 
 final googleSignInProvider = Provider<GoogleSignIn>((ref) {
   return GoogleSignIn();
